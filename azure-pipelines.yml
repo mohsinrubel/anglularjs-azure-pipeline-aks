@@ -1,0 +1,41 @@
+# Starter pipeline
+
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+  
+steps:
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'CoreSystem(6016ebd6-eeeb-4981-b20d-46dff419f2dd)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      docker build . -t fullstackprojeacr.azurecr.io/web-test-node:tag
+      
+      az acr login -n  fullstackprojeacr
+      
+      docker push fullstackprojeacr.azurecr.io/web-test-node:tag
+
+- script: cat aks/app.yml
+- task: Kubernetes@1
+  inputs:
+    connectionType: 'Azure Resource Manager'
+    azureSubscriptionEndpoint: 'CoreSystem(6016ebd6-eeeb-4981-b20d-46dff419f2dd)'
+    azureResourceGroup: 'fullstackproject-rg'
+    kubernetesCluster: 'cluster2'
+    namespace: 'default'
+    command: 'apply'
+    useConfigurationFile: true
+    configuration: 'aks/app.yml'
+    secretType: 'dockerRegistry'
+    containerRegistryType: 'Azure Container Registry'
+    azureSubscriptionEndpointForSecrets: 'CoreSystem(6016ebd6-eeeb-4981-b20d-46dff419f2dd)'
+    azureContainerRegistry: 'fullstackprojeacr.azurecr.io'
+    forceUpdate: false

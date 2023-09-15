@@ -1,0 +1,22 @@
+version: '3'
+services:
+  web-angular3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "900:80"
+
+    networks:
+      - app-network
+
+#Docker Networks
+# docker network create app-network
+networks:
+  app-network:
+    driver: bridge
+    external: true
+#Volumes
+volumes:
+  dbdata:
+    driver: local
